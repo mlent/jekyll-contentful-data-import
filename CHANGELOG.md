@@ -1,6 +1,14 @@
 # Change Log
 
 ## Unreleased
+### Added
+
+### v1.4.3
+* Added use of `map_field` without localizing for custom mappers that map `sys` properties when `locale='*'` is being sent.
+
+## v1.4.2
+### Fixed
+* Fixed localization issues for included assets [#29](https://github.com/contentful/jekyll-contentful-data-import/issues/29)
 
 ## v1.4.1
 ### Changed
