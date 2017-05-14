@@ -2,7 +2,11 @@ require 'contentful'
 
 module Jekyll
   module Contentful
+    # Mappers module
     module Mappers
+      # Base Mapper Class
+      #
+      # Logic for mapping entries into simplified serialized representations
       class Base
         def self.mapper_for(entry, config)
           ct = entry.content_type
@@ -36,17 +40,17 @@ module Jekyll
         def map
           result = { 'sys' => map_entry_metadata }
 
-          fields = has_multiple_locales? ? entry.fields_with_locales : entry.fields
+          fields = multiple_locales? ? entry.fields_with_locales : entry.fields
 
           fields.each do |k, v|
-            name, value = map_field(k, v, has_multiple_locales?)
+            name, value = map_field(k, v, multiple_locales?)
             result[name] = value
           end
 
           result
         end
 
-        def has_multiple_locales?
+        def multiple_locales?
           config.fetch('cda_query', {}).fetch('locale', nil) == '*'
         end
 
@@ -62,7 +66,7 @@ module Jekyll
             value_mapping = map_value(field_value)
           end
 
-          return field_name.to_s, value_mapping
+          [field_name.to_s, value_mapping]
         end
 
         def map_value(value, locale = nil)
@@ -90,12 +94,21 @@ module Jekyll
           end
         end
 
+        def map_asset_metadata(asset)
+          {
+            'id' => asset.id,
+            'created_at' => asset.sys.fetch(:created_at, nil),
+            'updated_at' => asset.sys.fetch(:updated_at, nil)
+          }
+        end
+
         def map_asset(asset, locale = nil)
           if locale
             file = asset.fields(locale)[:file]
             file_url = file.nil? ? '' : file.url
 
             return {
+              'sys' => map_asset_metadata(asset),
               'title' => asset.fields(locale)[:title],
               'description' => asset.fields(locale)[:description],
               'url' => file_url
@@ -106,6 +119,7 @@ module Jekyll
           file_url = file.nil? ? '' : file.url
 
           {
+            'sys' => map_asset_metadata(asset),
             'title' => asset.title,
             'description' => asset.description,
             'url' => file_url
@@ -117,19 +131,22 @@ module Jekyll
         end
 
         def map_location(location)
-          result = {}
-          location.properties.each do |k, v|
-            result[k.to_s] = v
-          end
-          result
+          {
+            'lat' => location.latitude,
+            'lon' => location.longitude
+          }
         end
 
         def map_link(link)
-          {'sys' => {'id' => link.id}}
+          {
+            'sys' => {
+              'id' => link.id
+            }
+          }
         end
 
         def map_array(array, locale)
-          array.map {|element| map_value(element, locale)}
+          array.map { |element| map_value(element, locale) }
         end
       end
     end
