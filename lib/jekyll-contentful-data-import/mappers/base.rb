@@ -23,8 +23,18 @@ module Jekyll
           @config = config
         end
 
+        def map_entry_metadata
+          content_type = entry.sys.fetch(:content_type, nil)
+          {
+            'id' => entry.sys.fetch(:id, nil),
+            'created_at' => entry.sys.fetch(:created_at, nil),
+            'updated_at' => entry.sys.fetch(:updated_at, nil),
+            'content_type_id' => content_type.nil? ? nil : content_type.id
+          }
+        end
+
         def map
-          result = {'sys' => {'id' => entry.id}}
+          result = { 'sys' => map_entry_metadata }
 
           fields = has_multiple_locales? ? entry.fields_with_locales : entry.fields
 
